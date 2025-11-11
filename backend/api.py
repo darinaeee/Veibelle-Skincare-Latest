@@ -17,16 +17,19 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 app = FastAPI(title="VeiBelle Skincare Recommender API")
 
 # --- Allow CORS for frontend ---
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "https://veibelle-deploy.vercel.app",  # ✅ your Vercel frontend
+        "http://localhost:5173",  # local dev
+        "https://veibelle-skincare-30zh3mmbe-darlinas-projects.vercel.app",  # ✅ your prod frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # --- Load Datasets ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
