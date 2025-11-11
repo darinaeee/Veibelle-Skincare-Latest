@@ -1,7 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecommendations } from "../api/recommendationAPI"; // ✅ use shared API function
+import { getRecommendations } from "../api/recommendationAPI"; // ✅ shared API function
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,7 +34,12 @@ const Dashboard = () => {
           pregnancy_safe: quizData.pregnancySafe,
         });
 
-        setRecs(Array.isArray(data.results) ? data.results : []);
+        // ✅ Filter out items with no name or brand, and remove match scores
+        const cleanResults = (data.results || []).filter(
+          (p) => p.name && p.brand
+        );
+
+        setRecs(cleanResults);
       } catch (e) {
         console.error("❌ Failed to fetch recommendations:", e);
         setErr("Failed to fetch recommendations. Please try again later.");
@@ -54,11 +59,11 @@ const Dashboard = () => {
     );
   }
 
-  // --- Recommended Product Card Component ---
+  // --- Recommended Product Card (only name + brand) ---
   const RecommendedProductCard = ({ p }) => (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition duration-300 flex flex-col">
       <h4 className="font-bold text-lg text-black">{p.name}</h4>
-      {p.brand && <p className="text-sm text-gray-500 mb-2">{p.brand}</p>}
+      {p.brand && <p className="text-sm text-gray-500">{p.brand}</p>}
     </div>
   );
 
