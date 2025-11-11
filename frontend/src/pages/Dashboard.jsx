@@ -1,7 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecommendations } from "../api/recommendationAPI"; // ✅ use shared API function
+import { getRecommendations } from "../api/recommendationAPI";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -59,10 +59,9 @@ const Dashboard = () => {
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition duration-300 flex flex-col">
       <h4 className="font-bold text-lg text-black">{p.name}</h4>
       {p.brand && <p className="text-sm text-gray-500 mb-2">{p.brand}</p>}
-      {p.similarity && (
-        <p className="text-xs text-gray-400 mb-1">
-          🔍 Match Score: {(p.similarity * 100).toFixed(1)}%
-        </p>
+      {/* Prevent rendering numeric values like 0 */}
+      {typeof p.similarity === "string" && p.similarity.trim() !== "" && (
+        <p className="text-xs text-gray-400 mb-1">{p.similarity}</p>
       )}
     </div>
   );
