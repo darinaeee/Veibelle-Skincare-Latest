@@ -21,7 +21,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://veibelle-deploy.vercel.app",  # ✅ your Vercel frontend
+        "https://veibelle-skincare-frontend.vercel.app",
+        "https://veibelle-skincare-5bt3xyscy-darlinas-projects.vercel.app",
+        "https://veibelle-skincare-l69jny07z-darlinas-projects.vercel.app",  # ✅ new deployment
     ],
     allow_credentials=True,
     allow_methods=["*"],
