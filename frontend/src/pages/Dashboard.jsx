@@ -54,36 +54,6 @@ const Dashboard = () => {
     );
   }
 
-  // --- Handlers for navigation buttons ---
-  const handleRetakeQuiz = () => {
-    localStorage.removeItem("quizData");
-    navigate("/quiz");
-  };
-
-  const handleGoHome = () => {
-    navigate("/");
-  };
-
-  // --- Process recommendations: filter & sort by similarity ---
-  const processedRecs = React.useMemo(() => {
-    if (!Array.isArray(recs) || recs.length === 0) return [];
-
-    // Only entries that actually have a similarity value
-    const withSim = recs.filter((p) => typeof p.similarity === "number");
-
-    // If no similarity field at all, just return original list
-    if (withSim.length === 0) return recs;
-
-    // Filter out 0-similarity items
-    const filtered = withSim.filter((p) => p.similarity > 0);
-
-    // Use filtered if not empty, otherwise fall back to withSim
-    const base = filtered.length > 0 ? filtered : withSim;
-
-    // Sort highest match first
-    return [...base].sort((a, b) => b.similarity - a.similarity);
-  }, [recs]);
-
   // --- Recommended Product Card Component ---
   const RecommendedProductCard = ({ p }) => (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition duration-300 flex flex-col">
@@ -95,26 +65,10 @@ const Dashboard = () => {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 p-6 mt-8">
       {/* Header */}
-      <header className="flex justify-between items-center border-b pb-4 gap-4">
+      <header className="flex justify-between items-center border-b pb-4">
         <h2 className="text-3xl font-extrabold text-black">
           Your Personalized Dashboard
         </h2>
-
-        <div className="flex gap-3">
-          <button
-            onClick={handleGoHome}
-            className="px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-          >
-            Back to Home
-          </button>
-
-          <button
-            onClick={handleRetakeQuiz}
-            className="px-4 py-2 rounded-full bg-black text-white text-sm font-medium hover:bg-gray-900 transition"
-          >
-            Retake Quiz
-          </button>
-        </div>
       </header>
 
       {/* Profile Summary */}
@@ -178,10 +132,8 @@ const Dashboard = () => {
         {err && <div className="text-red-500">{err}</div>}
 
         <div className="grid md:grid-cols-3 gap-6">
-          {processedRecs && processedRecs.length ? (
-            processedRecs.map((p, i) => (
-              <RecommendedProductCard key={i} p={p} />
-            ))
+          {recs && recs.length ? (
+            recs.map((p, i) => <RecommendedProductCard key={i} p={p} />)
           ) : (
             !loading && (
               <div className="text-gray-500">
