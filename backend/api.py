@@ -163,22 +163,23 @@ def get_recommendations(
     subset_indices = df.index.tolist()
     subset_matrix = full_tfidf[subset_indices]
 
-    concern_text = expand_concerns(concerns) if concerns else "hydrating soothing gentle"
-    user_vector = vectorizer.transform([concern_text])
-
     sims = cosine_similarity(user_vector, subset_matrix).flatten()
     df["similarity"] = sims
 
-    # 💡 (optional) remove products with 0 similarity
-    df = df[df["similarity"] > 0]
+    # Sort all products by similarity
+    df = df.sort_values(by="similarity", ascending=False)
 
-    # sort by best match and keep top N
-    df = df.sort_values(by="similarity", ascending=False).head(top_n)
+    # Try to keep only items with similarity > 0
+    positive = df[df["similarity"] > 0].head(top_n)
 
-    # ✅ only send brand + name to frontend
-    return df[["brand", "name"]].to_dict(orient="records")
+    # If everything is 0, fall back to the top_n anyway
+    if positive.empty:
+        df_use = df.head(top_n)
+    else:
+        df_use = positive
 
-
+    # ✅ Only send brand + name to frontend
+    return df_use[["brand", "name"]].to_dict(orient="records")
 
 # ================================================================
 # 🌐 FastAPI Endpoint
