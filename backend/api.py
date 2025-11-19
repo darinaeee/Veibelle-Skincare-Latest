@@ -168,9 +168,17 @@ def get_recommendations(
 
     sims = cosine_similarity(user_vector, subset_matrix).flatten()
     df["similarity"] = sims
+
+    # 💡 (optional) remove products with 0 similarity
+    df = df[df["similarity"] > 0]
+
+    # sort by best match and keep top N
     df = df.sort_values(by="similarity", ascending=False).head(top_n)
 
-    return df[["Label", "brand", "name", "similarity"]].to_dict(orient="records")
+    # ✅ only send brand + name to frontend
+    return df[["brand", "name"]].to_dict(orient="records")
+
+
 
 # ================================================================
 # 🌐 FastAPI Endpoint
