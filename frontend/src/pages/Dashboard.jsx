@@ -54,7 +54,7 @@ const Dashboard = () => {
     );
   }
 
-  // --- Handlers for navigation buttons ---
+  // --- Navigation handlers ---
   const handleRetakeQuiz = () => {
     localStorage.removeItem("quizData");
     navigate("/quiz");
@@ -64,57 +64,27 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  // --- Process recommendations: filter & sort by similarity ---
-  const processedRecs = React.useMemo(() => {
-    if (!Array.isArray(recs) || recs.length === 0) return [];
-
-    // Only entries that actually have a similarity value
-    const withSim = recs.filter((p) => typeof p.similarity === "number");
-
-    // If no similarity field at all, just return original list
-    if (withSim.length === 0) return recs;
-
-    // Filter out 0-similarity items
-    const filtered = withSim.filter((p) => p.similarity > 0);
-
-    // Use filtered if not empty, otherwise fall back to withSim
-    const base = filtered.length > 0 ? filtered : withSim;
-
-    // Sort highest match first
-    return [...base].sort((a, b) => b.similarity - a.similarity);
-  }, [recs]);
-
   // --- Recommended Product Card Component ---
-  const RecommendedProductCard = ({ p }) => (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition duration-300 flex flex-col">
+  const RecommendedProductCard = ({ p, allergens }) => (
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition duration-300 flex flex-col gap-1">
       <h4 className="font-bold text-lg text-black">{p.name}</h4>
-      {p.brand && <p className="text-sm text-gray-500 mb-2">{p.brand}</p>}
+      {p.brand && <p className="text-sm text-gray-500">{p.brand}</p>}
+
+      {allergens?.length > 0 && (
+        <p className="text-xs text-green-700 mt-1">
+          Allergen-safe for: {allergens.join(", ")}
+        </p>
+      )}
     </div>
   );
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 p-6 mt-8">
       {/* Header */}
-      <header className="flex justify-between items-center border-b pb-4 gap-4">
+      <header className="flex justify-between items-center border-b pb-4">
         <h2 className="text-3xl font-extrabold text-black">
           Your Personalized Dashboard
         </h2>
-
-        <div className="flex gap-3">
-          <button
-            onClick={handleGoHome}
-            className="px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
-          >
-            Back to Home
-          </button>
-
-          <button
-            onClick={handleRetakeQuiz}
-            className="px-4 py-2 rounded-full bg-black text-white text-sm font-medium hover:bg-gray-900 transition"
-          >
-            Retake Quiz
-          </button>
-        </div>
       </header>
 
       {/* Profile Summary */}
@@ -174,13 +144,26 @@ const Dashboard = () => {
           <strong>{quizData.concerns?.join(", ") || "none"}</strong>.
         </p>
 
+        {quizData.allergens?.length > 0 && (
+          <p className="text-gray-600 text-sm">
+            Products containing your selected allergens (
+            <strong>{quizData.allergens.join(", ")}</strong>
+            ) have been automatically detected and excluded from these
+            recommendations.
+          </p>
+        )}
+
         {loading && <div>Loading recommendations...</div>}
         {err && <div className="text-red-500">{err}</div>}
 
         <div className="grid md:grid-cols-3 gap-6">
-          {processedRecs && processedRecs.length ? (
-            processedRecs.map((p, i) => (
-              <RecommendedProductCard key={i} p={p} />
+          {recs && recs.length ? (
+            recs.map((p, i) => (
+              <RecommendedProductCard
+                key={i}
+                p={p}
+                allergens={quizData.allergens}
+              />
             ))
           ) : (
             !loading && (
@@ -189,6 +172,29 @@ const Dashboard = () => {
               </div>
             )
           )}
+        </div>
+      </div>
+
+      {/* Bottom actions */}
+      <div className="flex flex-col items-center mt-10 space-y-3">
+        <p className="text-gray-600 text-sm">
+          Not satisfied with these results? You may try again.
+        </p>
+
+        <div className="flex gap-4">
+          <button
+            onClick={handleRetakeQuiz}
+            className="px-5 py-2 rounded-full bg-black text-white text-sm font-medium hover:bg-gray-900 transition"
+          >
+            Retake Quiz
+          </button>
+
+          <button
+            onClick={handleGoHome}
+            className="px-5 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+          >
+            Back to Home
+          </button>
         </div>
       </div>
 
