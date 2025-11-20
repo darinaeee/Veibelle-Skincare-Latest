@@ -6,7 +6,8 @@ import Quiz from "./pages/Quiz";
 import Ingredients from "./pages/Ingredients";
 import Dashboard from "./pages/Dashboard";
 import Skincare101 from "./pages/Skincare101";
-
+import History from "./pages/History";
+import HistoryDetails from "./pages/HistoryDetails";
 
 function App() {
   return (
@@ -19,6 +20,8 @@ function App() {
         <Route path="ingredients" element={<Ingredients />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="/skincare101" element={<Skincare101 />} />
+        <Route path="/history" element={<History />} />
+<Route path="/history-details" element={<HistoryDetails />} />
       </Route>
     </Routes>
   );

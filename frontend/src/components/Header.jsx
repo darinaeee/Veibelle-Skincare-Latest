@@ -1,6 +1,5 @@
 // src/components/Header.jsx
 import { Link, NavLink, useLocation } from "react-router-dom";
-import userIcon from "../assets/user.png";
 import { useEffect, useState } from "react";
 
 const Header = () => {
@@ -68,12 +67,12 @@ const Header = () => {
               Take the Quiz
             </Link>
 
-            <Link to="/dashboard" className="no-underline">
-              <img
-                src={userIcon}
-                alt="Dashboard"
-                className="w-6 h-6 cursor-pointer hover:scale-110 transition-transform"
-              />
+            {/* New History button instead of user icon */}
+            <Link
+              to="/history"
+              className="text-sm font-[Poppins] no-underline text-black hover:text-gray-800 underline-offset-4 hover:underline transition-all"
+            >
+              History
             </Link>
           </div>
         </div>
