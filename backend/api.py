@@ -24,6 +24,11 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://veibelle-skincare-d4hyg12tt-darlinas-projects.vercel.app",
+        "https://veibelleskin.vercel.app",
+        "https://veibelleskin-git-main-darlinas-projects.vercel.app",
+        # Optional: add temporary preview if you're testing it now
+        "https://veibelleskin-fydjetmhq-darlinas-projects.vercel.app",
+
     ],
     allow_credentials=True,
     allow_methods=["*"],
