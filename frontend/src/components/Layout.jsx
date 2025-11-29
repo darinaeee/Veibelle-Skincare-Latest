@@ -1,17 +1,27 @@
 // src/components/Layout.jsx
-import React from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
-import { Outlet } from "react-router-dom";
 
 const Layout = () => {
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
   return (
-    <div className="min-h-screen flex flex-col">
+    // ❗ letak bg kat root sekali supaya full width warna sama
+    <div className="min-h-screen flex flex-col bg-[#f1eaea]">
       <Header />
-      {/* add padding top so content not hidden behind fixed header */}
-      <main className="flex-grow container mx-auto px-6 py-10 pt-24 bg-[#f1eaea]">
+
+      <main
+        className={
+          isHome
+            ? "flex-grow p-0 m-0" // Home: hero full-bleed, tiada padding
+            : "flex-grow w-full bg-[#f1eaea] px-0 py-8" // Pages lain: full width, kurang padding & tiada container
+        }
+      >
         <Outlet />
       </main>
+
       <Footer />
     </div>
   );

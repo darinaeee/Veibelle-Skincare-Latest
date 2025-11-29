@@ -1,29 +1,28 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=March&family=Poppins:wght@300;400;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Canva+Sans:wght@300;400;500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=March&display=swap');
 
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
+
+/* Global Style */
 body {
-  background-color: #f1eaea;
-  color: #000000;
-  font-family: 'Poppins', 'Canva Sans', sans-serif;
+  color: #000;  
+  font-family: 'Poppins', sans-serif;
+  background: none !important;   /* <<< REMOVE background here */
 }
 
-@layer base {
-  body {
-    @apply bg-green-50 text-gray-900;
-  }
-}
-
-@layer components {
-  .btn {
-    @apply bg-green-500 text-white font-semibold py-2 px-4 rounded hover:bg-green-600;
-  }
-}
-
-/* ✅ Global link style fix (add this at the end) */
+/* Keep links clean */
 a {
   text-decoration: none !important;
   color: inherit !important;
+}
+
+/* Custom Font */
+.pinyon-script-regular {
+  font-family: "Pinyon Script", cursive !important;
+  font-weight: 400;
+  font-style: normal;
 }

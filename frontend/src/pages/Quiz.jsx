@@ -1,28 +1,19 @@
-// src/pages/Quiz.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const QUIZ_OPTIONS = {
   skinTypes: [
-    { label: "Normal Skin", desc: "Lucky you! Your skin is generally in good shape, with only a few minor issues every now and then. You’d like to start a routine — because prevention is the best medicine." },
-    { label: "Dry Skin", desc: "Your skin feels dull and seems to have an unquenchable thirst for hydration. Flaky patches and tightness have you reaching for every cream you can find." },
-    { label: "Oily Skin", desc: "Your skin has a constant shine and tends to feel greasy throughout the day. Enlarged pores and frequent breakouts are your main challenges." },
-    { label: "Combination Skin", desc: "Your T-zone (forehead, nose, and chin) can get oily while your cheeks may feel dry or normal. You experience both shine and dryness depending on the area." },
-    { label: "Sensitive Skin", desc: "Your skin reacts easily to new products, fragrance, or weather changes. Redness, irritation, and burning sensations are common triggers you want to avoid." },
+    { label: "Normal Skin", desc: "Balanced, clear, and generally problem-free." },
+    { label: "Dry Skin", desc: "Feels tight, flaky, or rough. Craves hydration." },
+    { label: "Oily Skin", desc: "Shiny T-zone, enlarged pores, prone to breakouts." },
+    { label: "Combination Skin", desc: "Oily in some areas (T-zone), dry in others." },
+    { label: "Sensitive Skin", desc: "Reacts easily to products, prone to redness." },
   ],
   concerns: [
-    "Acne / Blackheads",
-    "Wrinkles / Fine Lines",
-    "Dryness / Dehydration",
-    "Uneven Texture / Enlarged Pores",
-    "Redness / Irritation",
-    "Pigmentation / Dark Spots",
-    "Impaired Skin Barrier",
-    "Loss of Elasticity",
-    "Dullness / Lack of Radiance",
-    "Dark Circles / Eye Bags",
-    "UV Protection",
-    "Pregnancy-Safe",
+    "Acne / Blackheads", "Wrinkles / Fine Lines", "Dryness / Dehydration",
+    "Uneven Texture", "Redness / Irritation", "Dark Spots",
+    "Impaired Barrier", "Loss of Elasticity", "Dullness",
+    "Dark Circles", "UV Protection", "Pregnancy-Safe",
   ],
   productTypes: ["Moisturizer", "Cleanser", "Treatment / Serum", "Face Mask", "Eye Cream", "Sun Protection"],
   allergens: ["Fragrance", "Alcohol", "Parabens", "Sulfates", "Essential Oils", "Silicones"],
@@ -47,15 +38,20 @@ export default function Quiz() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleCheckboxChange = (e) => {
-    const { name, value, checked } = e.target;
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    localStorage.setItem("quizStep", step.toString());
+  }, [step]);
+
+  const handleCheckboxChange = (name, value) => {
     setQuiz((prev) => {
       const currentArray = prev[name];
+      const exists = currentArray.includes(value);
       return {
         ...prev,
-        [name]: checked
-          ? [...currentArray, value]
-          : currentArray.filter((v) => v !== value),
+        [name]: exists
+          ? currentArray.filter((v) => v !== value)
+          : [...currentArray, value],
       };
     });
   };
@@ -71,12 +67,20 @@ export default function Quiz() {
     setCustomAllergen("");
   };
 
+  // ✅ FIX: Tambah 'id' dan 'timestamp' supaya Dashboard boleh detect ini adalah sesi baru
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
     try {
-      localStorage.setItem("quizData", JSON.stringify(quiz));
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const submissionData = {
+        ...quiz,
+        id: Date.now(), // ID Unik (guna masa semasa)
+        timestamp: new Date().toISOString() // Tarikh sebenar hari ini
+      };
+      
+      localStorage.setItem("quizData", JSON.stringify(submissionData));
+      
+      await new Promise((resolve) => setTimeout(resolve, 800));
       navigate("/dashboard");
     } catch {
       setError("Failed to save your quiz. Please try again.");
@@ -85,232 +89,252 @@ export default function Quiz() {
     }
   };
 
+  // --- Components ---
+
+  const SectionTitle = ({ children }) => (
+    <h2 className="font-['Cinzel'] text-2xl md:text-3xl text-[#1a1a1a] mb-2 text-center leading-tight">
+      {children}
+    </h2>
+  );
+
+  const SubTitle = ({ children }) => (
+    <p className="text-gray-500 font-['Poppins'] text-sm text-center mb-6 max-w-lg mx-auto">
+      {children}
+    </p>
+  );
+
+  const SelectionCard = ({ selected, onClick, label, desc }) => (
+    <button
+      onClick={onClick}
+      className={`group relative p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-center h-full
+        ${selected 
+          ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xl scale-[1.02]" 
+          : "bg-white text-gray-700 border-gray-200 hover:border-black hover:shadow-md"
+        }`}
+    >
+      <span className={`block font-['Cinzel'] font-bold text-base mb-1 ${selected ? "text-white" : "text-[#1a1a1a]"}`}>
+        {label}
+      </span>
+      {desc && (
+        <span className={`text-xs font-['Poppins'] leading-relaxed ${selected ? "text-gray-300" : "text-gray-500"}`}>
+          {desc}
+        </span>
+      )}
+    </button>
+  );
+
+  const PillOption = ({ selected, onClick, label }) => (
+    <button
+      onClick={onClick}
+      className={`px-5 py-2 rounded-full border text-sm font-['Poppins'] font-medium transition-all duration-300
+        ${selected 
+          ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-lg transform scale-105" 
+          : "bg-white text-gray-700 border-gray-300 hover:border-black hover:bg-gray-50"
+        }`}
+    >
+      {label}
+    </button>
+  );
+
+  const NextButton = ({ onClick, disabled, label }) => (
+    <div className="flex justify-center mt-8 pb-8">
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        className="bg-[#3E3328] text-white px-12 py-3 rounded-full text-sm font-['Poppins'] font-bold tracking-widest hover:bg-[#2c241b] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
+      >
+        {label || "NEXT"}
+      </button>
+    </div>
+  );
+
+  // --- Main Logic ---
+
   const renderStep = () => {
     switch (step) {
-      // Step 1 — Skin Type
-      case 1:
+      case 1: 
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold border-b pb-2">1. Your Skin Type</h3>
-            <p className="text-gray-600">Select your skin type to personalize your results.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="animate-fade-in-up">
+            <SectionTitle>What is your skin type?</SectionTitle>
+            <SubTitle>Select the one that describes your skin best.</SubTitle>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {QUIZ_OPTIONS.skinTypes.map(({ label, desc }) => (
-                <button
+                <SelectionCard
                   key={label}
+                  label={label}
+                  desc={desc}
+                  selected={quiz.skinType === label}
                   onClick={() => setQuiz((p) => ({ ...p, skinType: label }))}
-                  className={`p-4 rounded border text-left transition ${quiz.skinType === label ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
-                >
-                  <span className="block font-semibold">{label}</span>
-                  <p className="text-sm text-gray-500 mt-1">{desc}</p>
-                </button>
+                />
               ))}
             </div>
-            <button
-              onClick={() => setStep(2)}
-              disabled={!quiz.skinType}
-              className="w-full mt-6 bg-black text-white py-3 rounded font-bold hover:bg-gray-800 disabled:opacity-50"
-            >
-              Next: Concerns →
-            </button>
+            <NextButton onClick={() => setStep(2)} disabled={!quiz.skinType} />
           </div>
         );
 
-      // Step 2 — Concerns
       case 2:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold border-b pb-2">2. Main Skin Concerns</h3>
-            <p className="text-gray-600">Which issues are you looking to address?</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="animate-fade-in-up">
+            <SectionTitle>What are your main concerns?</SectionTitle>
+            <SubTitle>Select all that apply so we can target them.</SubTitle>
+            <div className="flex flex-wrap justify-center gap-3">
               {QUIZ_OPTIONS.concerns.map((concern) => (
-                <label key={concern} className="flex items-center space-x-2 bg-white p-3 rounded border hover:border-black cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="concerns"
-                    value={concern}
-                    checked={quiz.concerns.includes(concern)}
-                    onChange={handleCheckboxChange}
-                    className="text-black border-gray-300 rounded focus:ring-black"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{concern}</span>
-                </label>
+                <PillOption
+                  key={concern}
+                  label={concern}
+                  selected={quiz.concerns.includes(concern)}
+                  onClick={() => handleCheckboxChange("concerns", concern)}
+                />
               ))}
             </div>
-            <div className="flex justify-between pt-4">
-              <button onClick={() => setStep(1)} className="text-gray-600 hover:text-black font-medium">← Back</button>
-              <button
-                onClick={() => setStep(3)}
-                disabled={quiz.concerns.length === 0}
-                className="bg-black text-white py-3 px-6 rounded font-bold hover:bg-gray-800 disabled:opacity-50"
-              >
-                Next: Product Type →
-              </button>
+            <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-8 pb-8">
+               <button onClick={() => setStep(1)} className="text-gray-400 font-['Poppins'] hover:text-black underline-offset-4 hover:underline text-sm">Back</button>
+               <button onClick={() => setStep(3)} disabled={quiz.concerns.length === 0} className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md">NEXT</button>
             </div>
           </div>
         );
 
-      // Step 3 — Product Type
       case 3:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold border-b pb-2">3. Product Type</h3>
-            <p className="text-gray-600">Select the category of product you’re looking for.</p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="animate-fade-in-up">
+            <SectionTitle>What are you looking for?</SectionTitle>
+            <SubTitle>Choose the product category you need today.</SubTitle>
+            <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
               {QUIZ_OPTIONS.productTypes.map((type) => (
-                <button
+                <PillOption
                   key={type}
+                  label={type}
+                  selected={quiz.productType === type}
                   onClick={() => setQuiz((p) => ({ ...p, productType: type }))}
-                  className={`py-3 px-4 rounded border font-medium transition ${quiz.productType === type ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
-                >
-                  {type}
-                </button>
+                />
               ))}
             </div>
-            <div className="flex justify-between pt-4">
-              <button onClick={() => setStep(2)} className="text-gray-600 hover:text-black font-medium">← Back</button>
-              <button onClick={() => setStep(4)} disabled={!quiz.productType} className="bg-black text-white py-3 px-6 rounded font-bold hover:bg-gray-800 disabled:opacity-50">
-                Next: Allergens →
-              </button>
+            <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-8 pb-8">
+               <button onClick={() => setStep(2)} className="text-gray-400 font-['Poppins'] hover:text-black underline-offset-4 hover:underline text-sm">Back</button>
+               <button onClick={() => setStep(4)} disabled={!quiz.productType} className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md">NEXT</button>
             </div>
           </div>
         );
 
-      // Step 4 — Allergens
       case 4:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold border-b pb-2">4. Allergies or Ingredients to Avoid</h3>
-            <p className="text-gray-600">We’ll exclude products containing these ingredients.</p>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="animate-fade-in-up">
+            <SectionTitle>Any ingredients to avoid?</SectionTitle>
+            <SubTitle>We will exclude products containing these ingredients.</SubTitle>
+            <div className="flex flex-wrap justify-center gap-3 mb-6">
               {QUIZ_OPTIONS.allergens.map((allergen) => (
-                <label key={allergen} className="flex items-center space-x-2 bg-white p-3 rounded border hover:border-black cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="allergens"
-                    value={allergen}
-                    checked={quiz.allergens.includes(allergen)}
-                    onChange={handleCheckboxChange}
-                    className="text-black border-gray-300 rounded focus:ring-black"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{allergen}</span>
-                </label>
+                <PillOption
+                  key={allergen}
+                  label={allergen}
+                  selected={quiz.allergens.includes(allergen)}
+                  onClick={() => handleCheckboxChange("allergens", allergen)}
+                />
               ))}
             </div>
-
-            {/* Custom Allergen Input */}
-            <div className="mt-4">
-              <label className="block font-semibold text-gray-700 mb-2">Add your own allergen or ingredient:</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={customAllergen}
-                  onChange={(e) => setCustomAllergen(e.target.value)}
-                  placeholder="e.g., coconut oil, lanolin, retinol..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-black"
-                />
-                <button onClick={handleAddCustomAllergen} className="bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800">
-                  Add
-                </button>
-              </div>
-              {quiz.allergens.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {quiz.allergens.map((a) => (
-                    <span key={a} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm">{a}</span>
-                  ))}
-                </div>
-              )}
+            <div className="max-w-md mx-auto bg-white p-2 rounded-full border border-gray-300 flex items-center shadow-sm focus-within:ring-1 focus-within:ring-black focus-within:border-black">
+              <input
+                type="text"
+                value={customAllergen}
+                onChange={(e) => setCustomAllergen(e.target.value)}
+                placeholder="Type other ingredient (e.g. Retinol)"
+                className="flex-1 bg-transparent border-none focus:ring-0 px-4 text-gray-700 placeholder-gray-400 font-['Poppins'] text-sm"
+              />
+              <button onClick={handleAddCustomAllergen} className="bg-black text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide hover:bg-gray-800 transition">Add</button>
             </div>
-
-            <div className="flex justify-between pt-4">
-              <button onClick={() => setStep(3)} className="text-gray-600 hover:text-black font-medium">← Back</button>
-              <button onClick={() => setStep(5)} className="bg-black text-white py-3 px-6 rounded font-bold hover:bg-gray-800">
-                Next: Eye Area →
-              </button>
+            {quiz.allergens.filter(a => !QUIZ_OPTIONS.allergens.includes(a)).length > 0 && (
+               <div className="flex flex-wrap justify-center gap-2 mt-4">
+                 {quiz.allergens.filter(a => !QUIZ_OPTIONS.allergens.includes(a)).map(a => (
+                    <span key={a} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-['Poppins'] flex items-center gap-2">
+                       {a} <button onClick={() => handleCheckboxChange("allergens", a)} className="hover:text-red-500">×</button>
+                    </span>
+                 ))}
+               </div>
+            )}
+            <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-8 pb-8">
+               <button onClick={() => setStep(3)} className="text-gray-400 font-['Poppins'] hover:text-black underline-offset-4 hover:underline text-sm">Back</button>
+               <button onClick={() => setStep(5)} className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] transition-all shadow-md">NEXT</button>
             </div>
           </div>
         );
 
-      // Step 5 — Eye Concerns
       case 5:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold border-b pb-2">5. Eye Area Concerns</h3>
-            <p className="text-gray-600">Select any that apply.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="animate-fade-in-up">
+            <SectionTitle>Eye area concerns?</SectionTitle>
+            <SubTitle>Specific needs for the delicate eye area.</SubTitle>
+            <div className="flex flex-wrap justify-center gap-3">
               {QUIZ_OPTIONS.eyeConcerns.map((opt) => (
-                <label key={opt} className="flex items-center space-x-2 bg-white p-3 rounded border hover:border-black cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="eyeConcerns"
-                    value={opt}
-                    checked={quiz.eyeConcerns.includes(opt)}
-                    onChange={handleCheckboxChange}
-                    className="text-black border-gray-300 rounded focus:ring-black"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{opt}</span>
-                </label>
+                <PillOption
+                  key={opt}
+                  label={opt}
+                  selected={quiz.eyeConcerns.includes(opt)}
+                  onClick={() => handleCheckboxChange("eyeConcerns", opt)}
+                />
               ))}
             </div>
-            <div className="flex justify-between pt-4">
-              <button onClick={() => setStep(4)} className="text-gray-600 hover:text-black font-medium">← Back</button>
-              <button onClick={() => setStep(6)} className="bg-black text-white py-3 px-6 rounded font-bold hover:bg-gray-800">
-                Next: Pregnancy →
-              </button>
+            <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-8 pb-8">
+               <button onClick={() => setStep(4)} className="text-gray-400 font-['Poppins'] hover:text-black underline-offset-4 hover:underline text-sm">Back</button>
+               <button onClick={() => setStep(6)} className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] transition-all shadow-md">NEXT</button>
             </div>
           </div>
         );
 
-      // Step 6 — Pregnancy
       case 6:
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold border-b pb-2">6. Pregnancy & Nursing</h3>
-            <p className="text-gray-600">Are you pregnant, breastfeeding, or trying to conceive?</p>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="animate-fade-in-up">
+            <SectionTitle>Pregnancy & Nursing</SectionTitle>
+            <SubTitle>We ensure recommendations are safe for you and baby.</SubTitle>
+            <div className="flex justify-center gap-4">
               {QUIZ_OPTIONS.pregnancy.map((opt) => (
                 <button
                   key={opt}
                   onClick={() => setQuiz((p) => ({ ...p, pregnancy: opt }))}
-                  className={`p-3 rounded border font-medium transition ${quiz.pregnancy === opt ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+                  className={`w-32 py-3 rounded-2xl border text-lg font-['Cinzel'] font-bold transition-all duration-300
+                    ${quiz.pregnancy === opt 
+                      ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-lg scale-105" 
+                      : "bg-white text-gray-700 border-gray-200 hover:border-black"
+                    }`}
                 >
                   {opt}
                 </button>
               ))}
             </div>
-            <div className="flex justify-between pt-4">
-              <button onClick={() => setStep(5)} className="text-gray-600 hover:text-black font-medium">← Back</button>
-              <button onClick={handleSave} disabled={isSaving} className="bg-black text-white py-3 px-6 rounded font-bold hover:bg-gray-800 disabled:opacity-50">
-                {isSaving ? "Saving..." : "Finish"}
-              </button>
+            <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-8 pb-8">
+               <button onClick={() => setStep(5)} className="text-gray-400 font-['Poppins'] hover:text-black underline-offset-4 hover:underline text-sm">Back</button>
+               <button 
+                 onClick={handleSave} 
+                 disabled={isSaving || !quiz.pregnancy}
+                 className="bg-[#3E3328] text-white px-12 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
+               >
+                 {isSaving ? "ANALYZING..." : "SEE RESULTS"}
+               </button>
             </div>
-            {error && <p className="text-red-500 mt-4">{error}</p>}
+            {error && <p className="text-red-500 mt-4 text-center font-['Poppins'] text-sm">{error}</p>}
           </div>
         );
 
-      default:
-        return <div>Error loading step.</div>;
+      default: return null;
     }
   };
 
-  // ✅ Adjust progress bar (now only 6 steps)
-  const progress = Math.round((step / 6) * 100);
+  const progress = Math.round(((step - 1) / 6) * 100);
 
   return (
-    <div className="max-w-6xl mx-auto p-8 rounded-2xl ">
-      <h2 className="text-3xl font-extrabold text-center mb-6">Personalized Skincare Quiz</h2>
-      
-      <div className="relative pt-1 mb-8">
-        <div className="overflow-hidden h-2 mb-2 flex rounded bg-gray-200">
-          <div
-            style={{ width: `${progress}%` }}
-            className="h-10 bg-black transition-all duration-1500 rounded"
-          ></div>
+    <div className="w-full flex flex-col items-center">
+      <div className="w-full max-w-4xl flex items-center justify-between mb-6 px-4 md:px-0">
+        <div className="h-1.5 w-full mr-4 bg-gray-200 rounded-full overflow-hidden">
+           <div 
+             style={{ width: `${progress}%` }} 
+             className="h-full bg-black transition-all duration-500 ease-out"
+           ></div>
         </div>
-        <p className="text-sm text-center text-gray-500 font-medium">
-          Step {step} of 6
-        </p>
+        <span className="font-['Poppins'] font-medium text-sm text-gray-400 whitespace-nowrap">
+          {progress}% Completed
+        </span>
       </div>
-      {renderStep()}
+      <div className="w-full max-w-4xl px-6">
+        {renderStep()}
+      </div>
     </div>
   );
 }
