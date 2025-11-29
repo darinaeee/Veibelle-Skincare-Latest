@@ -1,6 +1,5 @@
 // src/components/Header.jsx
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
 
 const Header = () => {
   const location = useLocation();
@@ -39,10 +38,10 @@ const Header = () => {
             </NavLink>
           </nav>
 
-          {/* Center Brand - Cinzel font */}
+          {/* Center Brand - now same as footer (Pinyon Script) */}
           <Link
             to="/"
-            className="absolute left-1/2 transform -translate-x-1/2 font-['Cinzel'] text-[32px] md:text-[40px] font-bold text-black tracking-wider no-underline hover:opacity-80 transition-opacity"
+            className="absolute left-1/2 transform -translate-x-1/2 pinyon-script-regular text-[34px] md:text-[42px] text-black tracking-widest no-underline hover:opacity-80 transition-opacity"
           >
             VeiBelle
           </Link>
