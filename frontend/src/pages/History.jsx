@@ -2,19 +2,112 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const History = () => {
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("history") || "[]");
-    setHistory(stored.reverse());
+    const email = localStorage.getItem("veibelle_email");
+
+    if (!email) {
+      // Not logged in → show error + button to login
+      setLoading(false);
+      setErr("Please sign in first to see your history.");
+      return;
+    }
+
+    const fetchHistory = async () => {
+      try {
+        setLoading(true);
+        setErr(null);
+
+        const res = await fetch(
+          `${API_BASE_URL}/history?email=${encodeURIComponent(email)}`
+        );
+        const json = await res.json();
+
+        if (!res.ok || json.status !== "success") {
+          throw new Error(json.detail || "Failed to load history");
+        }
+
+        const rows = json.data || [];
+
+        // Transform backend rows → UI-friendly history items
+        const transformed = rows
+          .map((row) => {
+            const qa = row.quiz_answers || {};
+
+            const profile = {
+              // map backend keys to the ones your UI uses
+              skinType: qa.skin_type || "",
+              concerns: qa.concerns || [],
+              productType: qa.product_type || "",
+              allergens: qa.allergens || [],
+              eyeConcerns: qa.eye_concerns || [],
+              pregnancy: qa.pregnancy || "",
+              // extra meta for uniqueness
+              id: row.id,
+              timestamp: row.created_at,
+            };
+
+            return {
+              profile,
+              results: row.recommendations || [],
+              timestamp: row.created_at,
+            };
+          })
+          // newest first
+          .sort(
+            (a, b) =>
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          );
+
+        setHistory(transformed);
+      } catch (e) {
+        console.error("❌ Failed to load history:", e);
+        setErr("Failed to load your history. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
   }, []);
 
   const handleViewDetails = (item) => {
-    localStorage.setItem("historyView", JSON.stringify(item));
-    navigate("/history-details");
+    // Pass whole item via router state (no localStorage)
+    navigate("/history-details", { state: item });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
+        <p className="font-['Cinzel'] text-xl text-gray-400 animate-pulse">
+          Loading your past consultations...
+        </p>
+      </div>
+    );
+  }
+
+  if (err) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf9f6] px-4">
+        <p className="font-['Poppins'] text-sm text-red-500 mb-4 text-center">
+          {err}
+        </p>
+        <button
+          onClick={() => navigate("/auth/login")}
+          className="px-8 py-3 rounded-full bg-[#1a1a1a] text-white text-sm font-['Poppins'] font-bold tracking-wide hover:bg-[#333] transition"
+        >
+          Go to Sign In
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20 pt-10">
@@ -30,9 +123,11 @@ const History = () => {
 
         {history.length === 0 && (
           <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-gray-200">
-            <p className="font-['Cinzel'] text-xl text-gray-400 mb-4">No history found yet.</p>
-            <button 
-              onClick={() => navigate('/quiz')}
+            <p className="font-['Cinzel'] text-xl text-gray-400 mb-4">
+              No history found yet.
+            </p>
+            <button
+              onClick={() => navigate("/quiz")}
               className="px-8 py-3 rounded-full bg-[#1a1a1a] text-white text-sm font-['Poppins'] font-bold tracking-wide hover:bg-[#333] transition"
             >
               Take Your First Quiz
@@ -49,17 +144,26 @@ const History = () => {
             >
               <div className="space-y-3 flex-1">
                 <div className="flex items-center gap-2 text-gray-400 text-xs font-['Poppins'] font-bold uppercase tracking-widest">
-                   <FaCalendarAlt />
-                   {new Date(item.timestamp).toLocaleDateString("en-US", {
-                      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                   })}
+                  <FaCalendarAlt />
+                  {new Date(item.timestamp).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </div>
                 <h3 className="font-['Cinzel'] text-2xl font-bold text-[#1a1a1a]">
-                  {item.profile.skinType} <span className="text-gray-300">|</span> {item.profile.productType}
+                  {item.profile.skinType}{" "}
+                  <span className="text-gray-300">|</span>{" "}
+                  {item.profile.productType}
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {item.profile.concerns.map((c, i) => (
-                    <span key={i} className="bg-gray-50 text-gray-600 px-3 py-1 rounded-full text-xs font-['Poppins'] font-medium border border-gray-100">
+                  {item.profile.concerns?.map((c, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-50 text-gray-600 px-3 py-1 rounded-full text-xs font-['Poppins'] font-medium border border-gray-100"
+                    >
                       {c}
                     </span>
                   ))}

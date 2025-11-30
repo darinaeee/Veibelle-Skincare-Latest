@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource/lato": "^5.2.7",
     "@fontsource/roboto-slab": "^5.2.8",
+    "@supabase/supabase-js": "^2.86.0",
     "bootstrap": "^5.3.8",
     "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.24",

@@ -1,10 +1,16 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import os, traceback
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from dotenv import load_dotenv
+
+# 🔹 NEW: imports for database + models
+import psycopg2
+from psycopg2.extras import RealDictCursor, Json
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
 
 # ================================================================
 # 🚀 VeiBelle Skincare Recommender API (Weighted TF-IDF Version)
@@ -13,12 +19,18 @@ from dotenv import load_dotenv
 # Load .env
 load_dotenv()
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# 🔹 NEW: simple helper to connect to Supabase Postgres
+def get_db_connection():
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL is not set in environment variables.")
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
 
 app = FastAPI(title="VeiBelle Skincare Recommender API")
 
 # --- Allow CORS for frontend ---
-from fastapi.middleware.cors import CORSMiddleware
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -26,17 +38,16 @@ app.add_middleware(
         "https://veibelle-skincare-d4hyg12tt-darlinas-projects.vercel.app",
         "https://veibelleskin.vercel.app",
         "https://veibelleskin-git-main-darlinas-projects.vercel.app",
-        # Optional: add temporary preview if you're testing it now
         "https://veibelleskin-fydjetmhq-darlinas-projects.vercel.app",
-
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# --- Load Datasets ---
+# ================================================================
+# 📦 Load Datasets
+# ================================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROCESSED = os.path.join(BASE_DIR, "processed")
 
@@ -178,7 +189,106 @@ def get_recommendations(
     return df[["Label", "brand", "name", "similarity"]].to_dict(orient="records")
 
 # ================================================================
-# 🌐 FastAPI Endpoint
+# 🔹 NEW: Models & Endpoints for Recommendation History
+# ================================================================
+
+class SaveHistoryRequest(BaseModel):
+    """
+    Payload format when frontend saves one recommendation session.
+    `quiz_answers` can be any dict (skin type, concerns, etc.).
+    `recommendations` is the list returned from get_recommendations().
+    """
+    email: str
+    user_id: Optional[str] = None  # Supabase auth user id (optional for now)
+    quiz_answers: Dict[str, Any]
+    recommendations: List[Dict[str, Any]]
+
+
+@app.post("/history")
+def save_history(payload: SaveHistoryRequest):
+    """
+    Save one recommendation session into Supabase DB.
+    """
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        insert_query = """
+            insert into recommendation_history (user_id, email, quiz_answers, recommendations)
+            values (%s, %s, %s, %s)
+            returning id, created_at;
+        """
+
+        cur.execute(
+            insert_query,
+            (
+                payload.user_id,
+                payload.email,
+                Json(payload.quiz_answers),
+                Json(payload.recommendations),
+            ),
+        )
+        row = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return {
+            "status": "success",
+            "history_id": row["id"],
+            "created_at": row["created_at"].isoformat(),
+        }
+    except Exception as e:
+        print("❌ Error saving history:", e)
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to save history")
+
+
+@app.get("/history")
+def get_history(
+    email: str = Query(..., description="User email to fetch history"),
+):
+    """
+    Fetch all past recommendation sessions for a given email.
+    Later we can switch to verifying JWT & using user_id.
+    """
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        select_query = """
+            select id, user_id, email, quiz_answers, recommendations, created_at
+            from recommendation_history
+            where email = %s
+            order by created_at desc;
+        """
+
+        cur.execute(select_query, (email,))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        history = []
+        for r in rows:
+            history.append(
+                {
+                    "id": r["id"],
+                    "user_id": r["user_id"],
+                    "email": r["email"],
+                    "quiz_answers": r["quiz_answers"],
+                    "recommendations": r["recommendations"],
+                    "created_at": r["created_at"].isoformat(),
+                }
+            )
+
+        return {"status": "success", "data": history}
+    except Exception as e:
+        print("❌ Error fetching history:", e)
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to load history")
+
+# ================================================================
+# 🌐 FastAPI Endpoint – Recommendations
 # ================================================================
 @app.get("/recommend")
 def recommend_products(

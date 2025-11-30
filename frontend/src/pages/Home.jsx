@@ -5,9 +5,20 @@ import heroImage from "../assets/quiz-hero.png";
 const Home = () => {
   const navigate = useNavigate();
 
+  const handleStartQuiz = () => {
+    const email = localStorage.getItem("veibelle_email");
+
+    if (!email) {
+      // Not logged in → go to magic-link login page
+      navigate("/auth/login");
+    } else {
+      // Already logged in → go straight to quiz
+      navigate("/quiz");
+    }
+  };
+
   return (
     <div className="flex min-h-screen">
-
       {/* Left Image */}
       <div className="hidden md:block md:w-1/2 h-screen">
         <img
@@ -19,8 +30,6 @@ const Home = () => {
 
       {/* Right Content */}
       <div className="flex flex-col justify-center md:w-1/2 px-12 bg-[#f5efee]">
-
-        {/* MATCHES YOUR EXAMPLE */}
         <h1 className="font-['Playfair_Display'] text-4xl md:text-5xl mb-4 text-[#2c2c2c] leading-tight">
           Glow with Confidence – Backed
           <br /> by Smart Recommendations
@@ -31,16 +40,14 @@ const Home = () => {
           magic on your skin.
         </p>
 
-        {/* BUTTON STYLE LIKE YOUR EXAMPLE */}
         <button
-          onClick={() => navigate("/quiz")}
+          onClick={handleStartQuiz}
           className="bg-[#4a3b27] text-white px-8 py-2.5 rounded-full 
                      font-['Inter'] tracking-wide text-sm shadow-sm
                      hover:bg-[#3a2f20] transition-all w-fit"
         >
           START THE QUIZ
         </button>
-
       </div>
     </div>
   );

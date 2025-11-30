@@ -1,50 +1,35 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecommendations } from "../api/recommendationAPI";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [quizData, setQuizData] = useState(null);
   const [recs, setRecs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
 
-  // --- Load saved quiz data ---
+  // --- Load saved quiz data + recommendations from localStorage ---
   useEffect(() => {
-    const savedQuiz = localStorage.getItem("quizData");
-    if (savedQuiz) setQuizData(JSON.parse(savedQuiz));
-    else navigate("/quiz");
+    try {
+      const savedQuiz = localStorage.getItem("quizData");
+      if (!savedQuiz) {
+        navigate("/quiz");
+        return;
+      }
+
+      const parsed = JSON.parse(savedQuiz);
+      setQuizData(parsed);
+      setRecs(Array.isArray(parsed.recommendations) ? parsed.recommendations : []);
+      setLoading(false);
+    } catch (e) {
+      console.error("Failed to load quizData from localStorage:", e);
+      setErr("Failed to load your latest recommendation session.");
+      setLoading(false);
+    }
   }, [navigate]);
 
-  // --- Fetch recommendations ---
-  useEffect(() => {
-    if (!quizData) return;
-
-    const fetchRecs = async () => {
-      setLoading(true);
-      setErr(null);
-      try {
-        const data = await getRecommendations({
-          skin_type: quizData.skinType,
-          product_type: quizData.productType,
-          concerns: quizData.concerns?.join(","),
-          allergens_list: quizData.allergens?.join(","),
-          pregnancy_safe: quizData.pregnancySafe,
-        });
-        setRecs(Array.isArray(data.results) ? data.results : []);
-      } catch (e) {
-        console.error("❌ Failed to fetch recommendations:", e);
-        setErr("Failed to fetch recommendations. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecs();
-  }, [quizData]);
-
-  // ✅ Save to History Logic
+  // ✅ Save to History (localStorage) – optional UI history
   useEffect(() => {
     if (quizData && recs.length > 0) {
       const history = JSON.parse(localStorage.getItem("history") || "[]");
@@ -65,20 +50,10 @@ const Dashboard = () => {
 
         const updatedHistory = [...history, newEntry];
         localStorage.setItem("history", JSON.stringify(updatedHistory));
-        console.log("✅ Saved to history:", newEntry);
+        console.log("✅ Saved to local history:", newEntry);
       }
     }
   }, [recs, quizData]);
-
-  if (!quizData) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#faf9f6]">
-        <p className="font-['Cinzel'] text-xl text-gray-400 animate-pulse">
-          Curating your routine...
-        </p>
-      </div>
-    );
-  }
 
   // --- Handlers ---
   const handleRetakeQuiz = () => {
@@ -93,7 +68,7 @@ const Dashboard = () => {
   // --- Reusable Recommended Product Card ---
   const RecommendedProductCard = ({ p, profile }) => {
     const hasAllergens = profile.allergens?.length > 0;
-    const isPregnancySafe = profile.pregnancySafe === "Yes";
+    const isPregnancySafe = profile.pregnancy === "Yes";
 
     return (
       <div className="group bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full">
@@ -110,7 +85,7 @@ const Dashboard = () => {
             {p.name}
           </h4>
 
-          {/* (Optional) Label tag e.g. Moisturizer, Cleanser */}
+          {/* Label tag e.g. Moisturizer, Cleanser */}
           {p.Label && (
             <p className="text-[11px] font-['Poppins'] text-gray-500 mb-3">
               {p.Label}
@@ -171,6 +146,29 @@ const Dashboard = () => {
       </div>
     );
   };
+
+  // --- Loading / error states (before quizData is ready) ---
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#faf9f6]">
+        <p className="font-['Cinzel'] text-xl text-gray-400 animate-pulse">
+          Curating your routine...
+        </p>
+      </div>
+    );
+  }
+
+  if (!quizData) {
+    return null; // we already navigated to /quiz in the effect
+  }
+
+  if (err) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#faf9f6]">
+        <p className="font-['Poppins'] text-sm text-red-500">{err}</p>
+      </div>
+    );
+  }
 
   // --- MAIN RENDER ---
   return (
@@ -272,7 +270,7 @@ const Dashboard = () => {
                 Pregnancy / Nursing
               </span>
               <span className="font-['Cinzel'] text-xl font-bold text-[#1a1a1a]">
-                {quizData.pregnancySafe === "Yes"
+                {quizData.pregnancy === "Yes"
                   ? "Yes (Safe Mode On)"
                   : "No"}
               </span>
@@ -316,20 +314,6 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="py-20 text-center font-['Poppins'] text-gray-400 animate-pulse">
-              Finding the best formulas for you...
-            </div>
-          )}
-
-          {/* Error State */}
-          {err && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center font-['Poppins'] text-sm">
-              {err}
-            </div>
-          )}
-
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recs && recs.length > 0 ? (
@@ -337,16 +321,14 @@ const Dashboard = () => {
                 <RecommendedProductCard key={i} p={p} profile={quizData} />
               ))
             ) : (
-              !loading && (
-                <div className="col-span-full py-20 text-center bg-white rounded-[2rem] border border-dashed border-gray-200">
-                  <p className="font-['Cinzel'] text-xl text-gray-400 mb-2">
-                    No perfect matches found.
-                  </p>
-                  <p className="font-['Poppins'] text-sm text-gray-400">
-                    Try adjusting your filters.
-                  </p>
-                </div>
-              )
+              <div className="col-span-full py-20 text-center bg-white rounded-[2rem] border border-dashed border-gray-200">
+                <p className="font-['Cinzel'] text-xl text-gray-400 mb-2">
+                  No perfect matches found.
+                </p>
+                <p className="font-['Poppins'] text-sm text-gray-400">
+                  Try adjusting your filters.
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -367,7 +349,7 @@ const Dashboard = () => {
 
             <button
               onClick={handleGoHome}
-              className="px-8 py-3 rounded-full border border-gray-300 text-sm font-['Poppins'] font-bold text-gray-700 hover:bg-white hover:border-black hover:text-black transition"
+              className="px-8 py-3 rounded-full border border-gray-300 text-sm font-['Poppins'] font-bold text-gray-700 hover:bg:white hover:border-black hover:text-black transition"
             >
               Back to Home
             </button>
