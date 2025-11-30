@@ -39,6 +39,7 @@ app.add_middleware(
         "https://veibelleskin.vercel.app",
         "https://veibelleskin-git-main-darlinas-projects.vercel.app",
         "https://veibelleskin-fydjetmhq-darlinas-projects.vercel.app",
+        "https://veibelleskin-darlinas-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
