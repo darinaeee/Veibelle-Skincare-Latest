@@ -1,34 +1,54 @@
+// src/pages/EmailLogin.jsx
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 
 const EmailLogin = () => {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+  const [errorMsg, setErrorMsg] = useState("");
 
   const sendMagicLink = async (e) => {
     e.preventDefault();
-    setStatus("Sending magic link...");
+    setStatus("sending");
+    setErrorMsg("");
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: "http://localhost:5173/auth/callback",
-        // For production:
-        // emailRedirectTo: "https://veibelleskin-darlinas-projects.vercel.app/auth/callback",
-      },
-    });
+    try {
+      // 👇 Use whatever domain the app is currently running on
+      const redirectTo = `${window.location.origin}/auth/callback`;
 
-    if (error) {
-      setStatus("Error: " + error.message);
-    } else {
-      setStatus("✨ Magic link sent! Check your email.");
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (error) {
+        console.error(error);
+        setStatus("error");
+        setErrorMsg(error.message || "Failed to send magic link.");
+        return;
+      }
+
+      // Save email for later (History page)
+      localStorage.setItem("veibelle_email", email);
+
+      setStatus("sent");
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+      setErrorMsg("Unexpected error. Please try again.");
     }
   };
+
+  const isSending = status === "sending";
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#fff5f8]">
       <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center mb-4">Sign in to VeiBelle</h2>
+        <h2 className="text-2xl font-semibold text-center mb-4">
+          Sign in to VeiBelle
+        </h2>
 
         <form onSubmit={sendMagicLink} className="space-y-4">
           <input
@@ -42,13 +62,25 @@ const EmailLogin = () => {
 
           <button
             type="submit"
-            className="w-full bg-black text-white rounded-lg py-2 hover:bg-gray-800 transition"
+            disabled={isSending || !email}
+            className="w-full bg-black text-white rounded-lg py-2 hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Send Magic Link
+            {isSending ? "Sending..." : "Send Magic Link"}
           </button>
         </form>
 
-        {status && <p className="mt-3 text-center text-sm">{status}</p>}
+        {status === "sent" && (
+          <p className="mt-3 text-center text-sm text-green-600">
+            ✨ Magic link sent! Check your email and open the link on this
+            device/browser.
+          </p>
+        )}
+
+        {status === "error" && (
+          <p className="mt-3 text-center text-sm text-red-500">
+            {errorMsg}
+          </p>
+        )}
       </div>
     </div>
   );
