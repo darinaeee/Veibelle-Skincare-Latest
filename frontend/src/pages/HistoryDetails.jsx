@@ -45,9 +45,9 @@ const HistoryDetails = () => {
           </div>
         )}
       </div>
-      <button className="w-full mt-6 border border-[#1a1a1a] text-[#1a1a1a] py-3 rounded-full text-xs font-['Poppins'] font-bold uppercase tracking-widest group-hover:bg-[#1a1a1a] group-hover:text-white transition-all duration-300">
+      {/*<button className="w-full mt-6 border border-[#1a1a1a] text-[#1a1a1a] py-3 rounded-full text-xs font-['Poppins'] font-bold uppercase tracking-widest group-hover:bg-[#1a1a1a] group-hover:text-white transition-all duration-300">
         View Details
-      </button>
+      </button>*/}
     </div>
   );
 

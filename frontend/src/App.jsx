@@ -10,7 +10,8 @@ import Skincare101 from "./pages/Skincare101";
 import History from "./pages/History";
 import HistoryDetails from "./pages/HistoryDetails";
 import EmailLogin from "./pages/EmailLogin";
-import AuthCallback from "./pages/AuthCallback";
+import Verified from "./pages/Verified";
+
 
 function App() {
   return (
@@ -28,7 +29,8 @@ function App() {
         <Route path="history" element={<History />} />
         <Route path="history-details" element={<HistoryDetails />} />
         <Route path="/auth/login" element={<EmailLogin />} />
-<Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/verified" element={<Verified />} />
+
 
       </Route>
     </Routes>

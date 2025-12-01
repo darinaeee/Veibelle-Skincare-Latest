@@ -196,7 +196,7 @@ export default function Quiz() {
   const SelectionCard = ({ selected, onClick, label, desc }) => (
     <button
       onClick={onClick}
-      className={`group relative p-4 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-center h-full
+      className={`group relative p-4 rounded-pill border text-left transition-all duration-300 flex flex-col justify-center h-full
         ${
           selected
             ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xl scale-[1.02]"
@@ -225,7 +225,7 @@ export default function Quiz() {
   const PillOption = ({ selected, onClick, label }) => (
     <button
       onClick={onClick}
-      className={`px-5 py-2 rounded-full border text-sm font-['Poppins'] font-medium transition-all duration-300
+      className={`px-5 py-2 rounded-pill border text-sm font-['Poppins'] font-medium transition-all duration-300
         ${
           selected
             ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-lg transform scale-105"
@@ -241,7 +241,7 @@ export default function Quiz() {
       <button
         onClick={onClick}
         disabled={disabled}
-        className="bg-[#3E3328] text-white px-12 py-3 rounded-full text-sm font-['Poppins'] font-bold tracking-widest hover:bg-[#2c241b] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
+        className="bg-[#3E3328] text-white px-12 py-3 rounded-pill text-sm font-['Poppins'] font-bold tracking-widest hover:bg-[#2c241b] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-1"
       >
         {label || "NEXT"}
       </button>
@@ -298,7 +298,7 @@ export default function Quiz() {
               <button
                 onClick={() => setStep(3)}
                 disabled={quiz.concerns.length === 0}
-                className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
+                className="bg-[#3E3328] text-white px-10 py-3 rounded-pill font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
               >
                 NEXT
               </button>
@@ -333,7 +333,7 @@ export default function Quiz() {
               <button
                 onClick={() => setStep(4)}
                 disabled={!quiz.productType}
-                className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
+                className="bg-[#3E3328] text-white px-10 py-3 rounded-pill font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
               >
                 NEXT
               </button>
@@ -358,7 +358,7 @@ export default function Quiz() {
                 />
               ))}
             </div>
-            <div className="max-w-md mx-auto bg-white p-2 rounded-full border border-gray-300 flex items-center shadow-sm focus-within:ring-1 focus-within:ring-black focus-within:border-black">
+            <div className="max-w-md mx-auto bg-white p-2 rounded-pill border border-gray-300 flex items-center shadow-sm focus-within:ring-1 focus-within:ring-black focus-within:border-black">
               <input
                 type="text"
                 value={customAllergen}
@@ -368,7 +368,7 @@ export default function Quiz() {
               />
               <button
                 onClick={handleAddCustomAllergen}
-                className="bg-black text-white px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wide hover:bg-gray-800 transition"
+                className="bg-black text-white px-5 py-2 rounded-pill text-xs font-bold uppercase tracking-wide hover:bg-gray-800 transition"
               >
                 Add
               </button>
@@ -381,7 +381,7 @@ export default function Quiz() {
                   .map((a) => (
                     <span
                       key={a}
-                      className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-['Poppins'] flex items-center gap-2"
+                      className="bg-gray-100 text-gray-600 px-3 py-1 rounded-pill text-xs font-['Poppins'] flex items-center gap-2"
                     >
                       {a}
                       <button
@@ -403,7 +403,7 @@ export default function Quiz() {
               </button>
               <button
                 onClick={() => setStep(5)}
-                className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] transition-all shadow-md"
+                className="bg-[#3E3328] text-white px-10 py-3 rounded-pill font-bold tracking-wide hover:bg-[#2c241b] transition-all shadow-md"
               >
                 NEXT
               </button>
@@ -437,7 +437,7 @@ export default function Quiz() {
               </button>
               <button
                 onClick={() => setStep(6)}
-                className="bg-[#3E3328] text-white px-10 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] transition-all shadow-md"
+                className="bg-[#3E3328] text-white px-10 py-3 rounded-pill font-bold tracking-wide hover:bg-[#2c241b] transition-all shadow-md"
               >
                 NEXT
               </button>
@@ -457,7 +457,7 @@ export default function Quiz() {
                   onClick={() =>
                     setQuiz((p) => ({ ...p, pregnancy: opt }))
                   }
-                  className={`w-32 py-3 rounded-2xl border text-lg font-['Cinzel'] font-bold transition-all duration-300
+                  className={`w-32 py-3 rounded-pill border text-lg font-['Cinzel'] font-bold transition-all duration-300
                     ${
                       quiz.pregnancy === opt
                         ? "bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-lg scale-105"
@@ -478,7 +478,7 @@ export default function Quiz() {
               <button
                 onClick={handleSave}
                 disabled={isSaving || !quiz.pregnancy}
-                className="bg-[#3E3328] text-white px-12 py-3 rounded-full font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
+                className="bg-[#3E3328] text-white px-12 py-3 rounded-pill font-bold tracking-wide hover:bg-[#2c241b] disabled:opacity-50 transition-all shadow-md"
               >
                 {isSaving ? "ANALYZING..." : "SEE RESULTS"}
               </button>
@@ -501,7 +501,7 @@ export default function Quiz() {
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full max-w-4xl flex items-center justify-between mb-6 px-4 md:px-0">
-        <div className="h-1.5 w-full mr-4 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full mr-4 bg-gray-200 rounded-pill overflow-hidden">
           <div
             style={{ width: `${progress}%` }}
             className="h-full bg-black transition-all duration-500 ease-out"

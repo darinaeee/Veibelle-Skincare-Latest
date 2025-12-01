@@ -15,7 +15,7 @@ const Skincare101 = () => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveSection(id)}
-      className={`px-8 py-3 rounded-full text-xs md:text-sm font-['Poppins'] font-bold uppercase tracking-[0.15em] transition-all duration-300 border border-transparent
+      className={`px-8 py-3 rounded-pill text-xs md:text-sm font-['Poppins'] font-bold uppercase tracking-[0.15em] transition-all duration-300 border border-transparent
         ${
           activeSection === id
             ? "bg-[#1a1a1a] text-white shadow-lg"

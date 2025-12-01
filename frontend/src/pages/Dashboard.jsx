@@ -29,32 +29,6 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  // ✅ Save to History (localStorage) – optional UI history
-  useEffect(() => {
-    if (quizData && recs.length > 0) {
-      const history = JSON.parse(localStorage.getItem("history") || "[]");
-
-      // If quizData.id doesn't exist (older data), skip to avoid weird duplicates
-      if (!quizData.id) return;
-
-      const isAlreadySaved = history.some(
-        (item) => item.profile.id === quizData.id
-      );
-
-      if (!isAlreadySaved) {
-        const newEntry = {
-          profile: quizData,
-          results: recs,
-          timestamp: quizData.timestamp || new Date().toISOString(),
-        };
-
-        const updatedHistory = [...history, newEntry];
-        localStorage.setItem("history", JSON.stringify(updatedHistory));
-        console.log("✅ Saved to local history:", newEntry);
-      }
-    }
-  }, [recs, quizData]);
-
   // --- Handlers ---
   const handleRetakeQuiz = () => {
     localStorage.removeItem("quizData");
@@ -94,7 +68,7 @@ const Dashboard = () => {
 
           {/* Allergen safe badge */}
           {hasAllergens && (
-            <div className="inline-block bg-green-50 text-green-800 text-[10px] font-['Poppins'] font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-3">
+            <div className="inline-block bg-green-50 text-green-800 text-[10px] font-['Poppins'] font-bold uppercase tracking-wide px-3 py-1 rounded-pill mb-3">
               ✓ Allergen Safe
             </div>
           )}
@@ -140,12 +114,13 @@ const Dashboard = () => {
         </div>
 
         {/* Button */}
-        <button className="w-full mt-6 border border-[#1a1a1a] text-[#1a1a1a] py-3 rounded-full text-xs font-['Poppins'] font-bold uppercase tracking-widest group-hover:bg-[#1a1a1a] group-hover:text-white transition-all duration-300">
+        {/*<button className="w-full mt-6 border border-[#1a1a1a] text-[#1a1a1a] py-3 rounded-pill text-xs font-['Poppins'] font-bold uppercase tracking-widest group-hover:bg-[#1a1a1a] group-hover:text-white transition-all duration-300">
           View Details
         </button>
+        */}
       </div>
     );
-  };
+  }
 
   // --- Loading / error states (before quizData is ready) ---
   if (loading) {
@@ -206,7 +181,7 @@ const Dashboard = () => {
                 {quizData.concerns?.map((c, i) => (
                   <span
                     key={i}
-                    className="bg-gray-100 text-gray-700 px-4 py-1.5 rounded-full text-sm font-['Poppins'] font-medium"
+                    className="bg-gray-100 text-gray-700 px-4 py-1.5 rounded-pill text-sm font-['Poppins'] font-medium"
                   >
                     {c}
                   </span>
@@ -342,14 +317,14 @@ const Dashboard = () => {
           <div className="flex gap-4">
             <button
               onClick={handleRetakeQuiz}
-              className="px-8 py-3 rounded-full bg-[#1a1a1a] text-white text-sm font-['Poppins'] font-bold tracking-wide hover:bg-[#333] transition shadow-lg hover:-translate-y-1"
+              className="px-8 py-3 rounded-pill bg-[#1a1a1a] text-white text-sm font-['Poppins'] font-bold tracking-wide hover:bg-[#333] transition shadow-lg hover:-translate-y-1"
             >
               Retake Quiz
             </button>
 
             <button
               onClick={handleGoHome}
-              className="px-8 py-3 rounded-full border border-gray-300 text-sm font-['Poppins'] font-bold text-gray-700 hover:bg:white hover:border-black hover:text-black transition"
+              className="px-8 py-3 rounded-pill border border-gray-300 text-sm font-['Poppins'] font-bold text-gray-700 hover:bg-white hover:border-black hover:text-black transition"
             >
               Back to Home
             </button>

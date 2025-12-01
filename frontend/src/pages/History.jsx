@@ -1,3 +1,4 @@
+// src/pages/History.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaCalendarAlt, FaChevronRight } from "react-icons/fa";
@@ -17,6 +18,12 @@ const History = () => {
       // Not logged in → show error + button to login
       setLoading(false);
       setErr("Please sign in first to see your history.");
+      return;
+    }
+
+    if (!API_BASE_URL) {
+      setLoading(false);
+      setErr("API URL is not configured. Please try again later.");
       return;
     }
 
@@ -42,14 +49,14 @@ const History = () => {
             const qa = row.quiz_answers || {};
 
             const profile = {
-              // map backend keys to the ones your UI uses
               skinType: qa.skin_type || "",
-              concerns: qa.concerns || [],
+              concerns: Array.isArray(qa.concerns) ? qa.concerns : [],
               productType: qa.product_type || "",
-              allergens: qa.allergens || [],
-              eyeConcerns: qa.eye_concerns || [],
+              allergens: Array.isArray(qa.allergens) ? qa.allergens : [],
+              eyeConcerns: Array.isArray(qa.eye_concerns)
+                ? qa.eye_concerns
+                : [],
               pregnancy: qa.pregnancy || "",
-              // extra meta for uniqueness
               id: row.id,
               timestamp: row.created_at,
             };
@@ -60,7 +67,7 @@ const History = () => {
               timestamp: row.created_at,
             };
           })
-          // newest first
+          // newest first, just in case
           .sort(
             (a, b) =>
               new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -85,7 +92,7 @@ const History = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="font-['Cinzel'] text-xl text-gray-400 animate-pulse">
           Loading your past consultations...
         </p>
@@ -95,7 +102,7 @@ const History = () => {
 
   if (err) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf9f6] px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4">
         <p className="font-['Poppins'] text-sm text-red-500 mb-4 text-center">
           {err}
         </p>

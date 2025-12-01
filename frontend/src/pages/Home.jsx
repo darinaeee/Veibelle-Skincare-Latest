@@ -42,7 +42,7 @@ const Home = () => {
 
         <button
           onClick={handleStartQuiz}
-          className="bg-[#4a3b27] text-white px-8 py-2.5 rounded-full 
+          className="bg-[#4a3b27] text-white px-8 py-2.5 rounded-pill 
                      font-['Inter'] tracking-wide text-sm shadow-sm
                      hover:bg-[#3a2f20] transition-all w-fit"
         >

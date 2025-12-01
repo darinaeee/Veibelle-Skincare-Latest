@@ -1,14 +1,34 @@
 // src/components/Header.jsx
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import logoutIcon from "../assets/logout.png";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState(null);
+
+  // Check login state from localStorage
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("veibelle_email");
+    setEmail(storedEmail);
+  }, [location.pathname]); // re-check when route changes
+
+  const handleLogout = () => {
+    // Clear login data
+    localStorage.removeItem("veibelle_email");
+    // optional: also clear quiz data if you want a clean state
+    // localStorage.removeItem("quizData");
+    // localStorage.removeItem("quizStep");
+
+    setEmail(null);
+    navigate("/auth/login");
+  };
 
   return (
     <>
       <header className="fixed top-0 left-0 w-full bg-[#e9d4d4]/95 backdrop-blur-md text-[#1a1a1a] shadow-sm z-50 rounded-b-2xl transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
-          
           {/* Left Navigation */}
           <nav className="flex gap-8 font-[Poppins] text-[17px] font-medium tracking-wide">
             <NavLink
@@ -38,7 +58,7 @@ const Header = () => {
             </NavLink>
           </nav>
 
-          {/* Center Brand - now same as footer (Pinyon Script) */}
+          {/* Center Brand */}
           <Link
             to="/"
             className="absolute left-1/2 transform -translate-x-1/2 pinyon-script-regular text-[34px] md:text-[42px] text-black tracking-widest no-underline hover:opacity-80 transition-opacity"
@@ -62,6 +82,23 @@ const Header = () => {
             >
               Take the Quiz
             </Link>
+
+            {/* 🔓 Logout button – only when logged in */}
+            {email && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-[13px] font-[Poppins] text-gray-700 hover:text-black transition-colors"
+                title={`Logout ${email}`}
+              >
+                <img
+                  src={logoutIcon}
+                  alt="Logout"
+                  className="w-5 h-5 object-contain"
+                />
+                <span className="hidden md:inline">Logout</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
