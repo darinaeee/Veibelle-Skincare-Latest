@@ -2,7 +2,7 @@
 import React from "react";
 
 const Verified = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#fff5f8]">
+  <div className="min-h-screen flex items-center justify-center">
     <div className="bg-white p-8 rounded-pill shadow-md w-full max-w-md text-center">
       <h2 className="font-['Cinzel'] text-2xl mb-3">Email Verified</h2>
       <p className="font-['Poppins'] text-sm text-gray-600 mb-4">

@@ -27,8 +27,8 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full bg-[#e9d4d4]/95 backdrop-blur-md text-[#1a1a1a] shadow-sm z-50 rounded-b-2xl transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
+      <header className="fixed top-0 left-0 w-full bg-[#e9d4d4]/95 backdrop-blur-md text-[#1a1a1a] shadow-sm z-50 rounded transition-all duration-300">
+        <div className="max-w-8xl mx-auto px-6 py-4 flex justify-between items-center relative">
           {/* Left Navigation */}
           <nav className="flex gap-8 font-[Poppins] text-[17px] font-medium tracking-wide">
             <NavLink
@@ -77,7 +77,7 @@ const Header = () => {
             </Link>
 
             <Link
-              to="/quiz"
+              to="/auth/login"
               className="bg-[#1a1a1a] text-white px-6 py-2.5 rounded-full text-[17px] font-[Poppins] font-medium tracking-wide shadow-lg hover:bg-[#333] hover:shadow-xl active:scale-95 transition-all duration-300 no-underline"
             >
               Take the Quiz

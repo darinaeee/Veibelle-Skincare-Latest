@@ -105,6 +105,7 @@ const EmailLogin = () => {
         </div>
 
         {/* Continue button for after verification */}
+        {/*}
         <div className="mt-6 pt-4 border-t border-gray-100">
           <p className="text-[11px] font-['Poppins'] text-gray-500 text-center mb-3">
             Already clicked the link in your email?
@@ -115,7 +116,7 @@ const EmailLogin = () => {
           >
             I&apos;ve verified my email – start the quiz
           </button>
-        </div>
+        </div>*/}
       </div>
     </div>
   );
