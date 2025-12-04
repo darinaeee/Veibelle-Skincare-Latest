@@ -1,13 +1,11 @@
 // src/pages/EmailLogin.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 const EmailLogin = () => {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | sending | sent | error
   const [errorMsg, setErrorMsg] = useState("");
-  const navigate = useNavigate();
 
   const sendMagicLink = async (e) => {
     e.preventDefault();
@@ -15,8 +13,7 @@ const EmailLogin = () => {
     setErrorMsg("");
 
     try {
-      // 🔗 Option B: simple verification page (no auto-continue)
-      const redirectTo = `${window.location.origin}/auth/verified`;
+      const redirectTo = `${window.location.origin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -32,7 +29,7 @@ const EmailLogin = () => {
         return;
       }
 
-      // Save email so Quiz & History can use it
+      // Save email so Quiz & History can still read it if needed
       localStorage.setItem("veibelle_email", email);
 
       setStatus("sent");
@@ -46,7 +43,7 @@ const EmailLogin = () => {
   const isSending = status === "sending";
 
   return (
-    <div className="min-h-screen] flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-[#f0e7e0] px-8 py-10">
         {/* Heading */}
         <div className="mb-6 text-center">
@@ -54,8 +51,9 @@ const EmailLogin = () => {
             Sign in to VeiBelle
           </h1>
           <p className="font-['Poppins'] text-xs text-gray-500 max-w-sm mx-auto">
-            Enter your email and we&apos;ll send you a secure link to confirm
-            your session before you start the skincare quiz.
+            Please enter your email address to receive a secure login link. Once
+            you access the link from your inbox, you will complete Multi-Factor
+            Authentication (MFA) before starting the skincare quiz.
           </p>
         </div>
 
@@ -92,8 +90,9 @@ const EmailLogin = () => {
         <div className="mt-4 min-h-[40px]">
           {status === "sent" && (
             <p className="text-center text-xs font-['Poppins'] text-green-700 bg-green-50 border border-green-100 rounded-2xl px-3 py-2">
-              ✨ Magic link sent. Open your email, click the login link, then
-              return to this page to start the quiz.
+              ✨ A secure login link has been sent. Open your email, follow the
+              link, and you&apos;ll be redirected back to VeiBelle to complete
+              your MFA verification.
             </p>
           )}
 
@@ -103,20 +102,6 @@ const EmailLogin = () => {
             </p>
           )}
         </div>
-
-        {/* Continue button for after verification */}
-        {/*}
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <p className="text-[11px] font-['Poppins'] text-gray-500 text-center mb-3">
-            Already clicked the link in your email?
-          </p>
-          <button
-            onClick={() => navigate("/quiz")}
-            className="w-full rounded-pill border border-gray-300 bg-white text-[12px] font-['Poppins'] font-semibold text-gray-800 py-2.5 hover:border-black hover: transition"
-          >
-            I&apos;ve verified my email – start the quiz
-          </button>
-        </div>*/}
       </div>
     </div>
   );
