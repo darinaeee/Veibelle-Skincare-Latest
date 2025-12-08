@@ -4,6 +4,7 @@ import pandas as pd
 import os, traceback
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction import text
 from dotenv import load_dotenv
 
 # 🔹 NEW: imports for database + models
@@ -71,26 +72,81 @@ except Exception as e:
     products_df = ingredients_df = product_ing = product_allergens = None
 
 # ================================================================
-# 🧠 Weighted TF-IDF Training
+# 🧠 Improved TF-IDF Training (Model C)
 # ================================================================
+# Category synonyms to strengthen semantic signal
+CATEGORY_SYNONYMS = {
+    "cleanser": ["cleanser", "face wash", "foam cleanser", "gel cleanser"],
+    "toner": ["toner", "lotion", "skin softener"],
+    "serum": ["serum", "ampoule", "essence serum"],
+    "essence": ["essence", "treatment essence", "treatment lotion"],
+    "moisturizer": ["moisturizer", "cream", "gel cream", "lotion"],
+    "sunscreen": ["sunscreen", "sunblock", "uv protection", "spf"],
+}
+
+def expand_category_words(label: str) -> str:
+    if not label:
+        return ""
+    label_lower = label.lower()
+    base = [label_lower]
+    extra = []
+    for key, syns in CATEGORY_SYNONYMS.items():
+        if key in label_lower:
+            extra.extend(syns)
+    return " ".join(base + extra)
+
+# Domain-specific stopwords (extra noise words in skincare ingredients)
+domain_stopwords = {
+    "extract", "leaf", "root", "flower", "oil", "water",
+    "juice", "powder", "seed", "kernel", "fruit",
+}
+
+MY_STOP_WORDS = list(text.ENGLISH_STOP_WORDS.union(domain_stopwords))
+
 if products_df is not None:
     for col in ["ingredients", "Label", "brand", "name"]:
         if col not in products_df.columns:
             products_df[col] = ""
 
-    def build_weighted_text(row):
-        ingredients = str(row.get("ingredients", "")) * 3
-        label = str(row.get("Label", "")) * 2
-        brand = str(row.get("brand", "")) * 1
-        name = str(row.get("name", "")) * 1
-        return " ".join([ingredients, label, brand, name])
+    def build_search_text(row):
+        ingredients = str(row.get("ingredients", "")).lower()
+        label = str(row.get("Label", "")).lower()
+        brand = str(row.get("brand", "")).lower()
+        name = str(row.get("name", "")).lower()
 
-    products_df["search_text"] = products_df.apply(build_weighted_text, axis=1)
+        # clean label like "Serum/Essence"
+        category_clean = (
+            label.replace("/", " ")
+                 .replace("-", " ")
+                 .replace(",", " ")
+        )
+        category_expanded = expand_category_words(label)
 
-    vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), min_df=2)
+        parts = [
+            (ingredients + " ") * 2,        # ingredients, medium weight
+            (category_clean + " ") * 4,     # category words, strong weight
+            (category_expanded + " ") * 4,  # synonyms, strong weight
+            (label + " ") * 4,              # raw label repeated
+            brand,
+            name,
+        ]
+        return " ".join(parts)
+
+    products_df["search_text"] = products_df.apply(build_search_text, axis=1)
+
+    vectorizer = TfidfVectorizer(
+        stop_words=MY_STOP_WORDS,
+        ngram_range=(1, 2),
+        min_df=2,
+        max_df=0.85,
+        sublinear_tf=True,
+        norm="l2",
+        lowercase=True,
+        smooth_idf=True,
+    )
     full_tfidf = vectorizer.fit_transform(products_df["search_text"].fillna(""))
 
-    print("✅ Weighted TF-IDF search_text created and vectorized successfully.")
+    print("✅ Improved TF-IDF (Model C) search_text created and vectorized successfully.")
 else:
     vectorizer, full_tfidf = None, None
 
